@@ -1,0 +1,91 @@
+import random
+import math
+import matplotlib.pyplot as plt
+
+# Define the objective function with one global minimum and one local minimum
+def objective_function(x):
+    return x**2
+
+# Simulated Annealing function with live plotting and increased randomness
+def simulated_annealing_increased_randomness_with_iteration(initial_solution, objective_function, max_iterations, temperature, cooling_rate):
+    current_solution = initial_solution
+    current_energy = objective_function(current_solution)
+    best_solution = current_solution
+    best_energy = current_energy
+
+    solutions = [current_solution]
+    current_energies = [current_energy]
+    best_energies = [best_energy]
+    iterations = [0]  # Initialize with iteration 0
+
+    x = [x/100.0 for x in range(-300, 300)]
+    y = [objective_function(xi) for xi in x]
+
+    plt.ion()
+    fig, ax = plt.subplots(figsize=(10, 6))
+    line_current_energy, = ax.plot(solutions, current_energies, 'b-', label="Current Energy")
+    line_best_energy, = ax.plot(solutions, best_energies, 'g-', label="Best Energy")
+    red_point, = ax.plot(solutions, best_energies, 'ro')
+    ax.plot(x, y, 'r-', label="Objective Function")
+
+    ax.set_xlabel("Solution")
+    ax.set_ylabel("Energy")
+    ax.legend()
+    ax.set_title("Simulated Annealing Convergence")
+
+    for i in range(1, max_iterations + 1):
+        # Generate a neighboring solution by perturbing the current solution
+        neighbor_solution = current_solution + random.uniform(-0.1, 0.1)
+        neighbor_energy = objective_function(neighbor_solution)
+
+        # Calculate the energy difference between the current and neighbor solutions
+        energy_difference = neighbor_energy - current_energy
+
+        # Accept the neighbor solution if it has lower energy or with a certain probability
+        if energy_difference < 0 or random.random() < math.exp(-energy_difference / temperature):
+            current_solution = neighbor_solution
+            current_energy = neighbor_energy
+            solutions.append(current_solution)
+            current_energies.append(current_energy)
+
+            # Update the best solution
+            if current_energy < best_energy:
+                best_solution = current_solution
+                best_energy = current_energy
+                best_energies.append(best_energy)
+            else:
+                best_energies.append(best_energies[-1])
+
+        # Reduce the temperature according to the cooling rate
+        temperature *= cooling_rate
+
+        # Update the current iteration number
+        iterations.append(i)
+
+        # Update the plot
+        line_current_energy.set_data(solutions, current_energies)
+        line_best_energy.set_data(solutions, best_energies)
+        red_point.set_data(best_solution, best_energy)
+        ax.relim()
+        ax.autoscale_view()
+        ax.set_title(f"Simulated Annealing Convergence - Iteration {i}")
+        plt.draw()
+        plt.pause(0.01)
+
+    plt.ioff()
+    plt.show()
+
+    return best_solution, best_energy
+
+# Set initial parameters with increased randomness
+initial_solution = random.uniform(-3, 3)
+max_iterations = 1000
+initial_temperature = 5.0  # Increased initial temperature
+cooling_rate = 0.99  # Decreased cooling rate
+
+# Run simulated annealing with increased randomness and iteration display
+best_solution, best_energy = simulated_annealing_increased_randomness_with_iteration(initial_solution, objective_function, max_iterations, initial_temperature, cooling_rate)
+
+# Print the best solution and its corresponding energy
+print(f"Best Solution: {best_solution}")
+print(f"Best Energy: {best_energy}")
